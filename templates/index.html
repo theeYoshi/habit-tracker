@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Habit Tracker</title>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+<h1>Habit Tracker</h1>
+<div class="form-container">
+    <!-- Add Habit Form -->
+    <form action="/add" method="post" class="inline-form">
+        <input type="text" name="name" placeholder="Enter habit name" required>
+        <button type="submit">Add Habit</button>
+    </form>
+
+    <!-- Clean Everything Button -->
+    <form action="/delete_all" method="post" class="inline-form">
+        <button type="submit" style="background-color: red; color: white;">Clean Everything</button>
+    </form>
+</div>
+
+<ul>
+    {{range .habits}}
+    <li id="habit-{{.ID}}">
+        <span class="habit-name">{{.Name}}</span>
+        <!-- Progress Bar -->
+        <div class="progress-container">
+            <div class="progress-bar" style="width: {{calculateProgress .Streak}}%;"></div>
+        </div>
+        <form action="/mark_done/{{.ID}}" method="get" style="display: inline;">
+            <button type="submit">Mark Done</button>
+        </form>
+    </li>
+    {{end}}
+</ul>
+
+</body>
+</html>
+
+
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const buttons = document.querySelectorAll(".mark-done");
+
+        buttons.forEach(button => {
+            button.addEventListener("click", function (e) {
+                e.preventDefault();
+                const habitId = this.dataset.id;
+
+                fetch(`/mark_done/${habitId}`, { method: "GET" })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.habit) {
+                            // Update the streak value on the page
+                            const habitRow = document.querySelector(`#habit-${habitId}`);
+                            const streakSpan = habitRow.querySelector(".streak");
+                            streakSpan.textContent = `Streak: ${data.habit.Streak}`;
+                        } else {
+                            alert("Error marking habit as done.");
+                        }
+                    })
+                    .catch(err => console.error(err));
+            });
+        });
+    });
+</script>
